@@ -8,9 +8,9 @@ from typing import Dict, List
 
 import pygame
 
-from economy.player_stats import PlayerStats
-from ui.hud import HUD
-from waves.wave_manager import WaveManager
+from src.economy.player_stats import PlayerStats
+from src.ui.hud import HUD
+from src.waves.wave_manager import WaveManager
 
 WIDTH, HEIGHT = 960, 540
 BACKGROUND_COLOR = (25, 25, 35)
