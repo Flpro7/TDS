@@ -1,15 +1,16 @@
-"""Minimal pygame loop demonstrating the wave manager and HUD."""
+"""Minimal pygame loop demonstrating the wave manager, HUD, and configurator CLI."""
 
 from __future__ import annotations
 
+import argparse
 import random
 from typing import Dict, List
 
 import pygame
 
-from economy.player_stats import PlayerStats
-from ui.hud import HUD
-from waves.wave_manager import WaveManager
+from src.economy.player_stats import PlayerStats
+from src.ui.hud import HUD
+from src.waves.wave_manager import WaveManager
 
 WIDTH, HEIGHT = 960, 540
 BACKGROUND_COLOR = (25, 25, 35)
@@ -111,8 +112,39 @@ class Game:
         pygame.display.flip()
 
 
-def main() -> None:
+def run_game() -> None:
     Game().run()
+
+
+def run_configurator() -> None:
+    from tds.menu import main as menu_main
+
+    menu_main()
+
+
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description="Tower Defense Sandbox entry point")
+    mode_group = parser.add_mutually_exclusive_group()
+    mode_group.add_argument(
+        "--mode",
+        choices=("game", "configurator"),
+        default="game",
+        help="Run the realtime demo or launch the configurator CLI (default: game)",
+    )
+    mode_group.add_argument(
+        "--configurator",
+        action="store_true",
+        help="Shortcut to launch the configurator CLI",
+    )
+    return parser.parse_args()
+
+
+def main() -> None:
+    args = parse_args()
+    if args.configurator or getattr(args, "mode", "game") == "configurator":
+        run_configurator()
+    else:
+        run_game()
 
 
 if __name__ == "__main__":
