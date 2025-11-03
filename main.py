@@ -4,13 +4,14 @@ from __future__ import annotations
 
 import argparse
 import random
-from typing import Dict, List
+from types import ModuleType
+from typing import Dict, List, TYPE_CHECKING
 
-import pygame
-
-from src.economy.player_stats import PlayerStats
-from src.ui.hud import HUD
-from src.waves.wave_manager import WaveManager
+if TYPE_CHECKING:
+    import pygame as pygame_type
+    from src.economy.player_stats import PlayerStats
+    from src.ui.hud import HUD
+    from src.waves.wave_manager import WaveManager
 
 WIDTH, HEIGHT = 960, 540
 BACKGROUND_COLOR = (25, 25, 35)
@@ -30,7 +31,7 @@ WAVES = [
 
 
 class Enemy:
-    def __init__(self, enemy_type: str) -> None:
+    def __init__(self, enemy_type: str, pygame_module: ModuleType) -> None:
         definition = ENEMY_DEFINITIONS[enemy_type]
         self.enemy_type = enemy_type
         self.color = definition["color"]  # type: ignore[assignment]
@@ -38,22 +39,29 @@ class Enemy:
         self.reward = int(definition["reward"])  # type: ignore[arg-type]
         self.x = -ENEMY_RADIUS
         self.y = random.randint(200, HEIGHT - 50)
+        self._pygame = pygame_module
 
     def update(self, delta: float) -> None:
         self.x += self.speed * delta
 
-    def draw(self, surface: pygame.Surface) -> None:
-        pygame.draw.circle(surface, self.color, (int(self.x), int(self.y)), ENEMY_RADIUS)
+    def draw(self, surface: "pygame_type.Surface") -> None:
+        self._pygame.draw.circle(surface, self.color, (int(self.x), int(self.y)), ENEMY_RADIUS)
 
     def is_out_of_bounds(self) -> bool:
         return self.x - ENEMY_RADIUS > WIDTH
 
-    def hit_test(self, position: pygame.Vector2) -> bool:
-        return pygame.Vector2(self.x, self.y).distance_to(position) <= ENEMY_RADIUS
+    def hit_test(self, position: "pygame_type.Vector2") -> bool:
+        return self._pygame.Vector2(self.x, self.y).distance_to(position) <= ENEMY_RADIUS
 
 
 class Game:
     def __init__(self) -> None:
+        import pygame
+        from src.economy.player_stats import PlayerStats
+        from src.ui.hud import HUD
+        from src.waves.wave_manager import WaveManager
+
+        self._pygame = pygame
         pygame.init()
         pygame.font.init()
         pygame.display.set_caption("Tower Defense Sandbox")
@@ -66,29 +74,29 @@ class Game:
         self.hud = HUD(self.stats, self.wave_manager)
 
     def spawn_enemy(self, enemy_type: str) -> None:
-        self.enemies.append(Enemy(enemy_type))
+        self.enemies.append(Enemy(enemy_type, self._pygame))
 
     def run(self) -> None:
         running = True
         while running:
             delta = self.clock.tick(60) / 1000.0
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
+            for event in self._pygame.event.get():
+                if event.type == self._pygame.QUIT:
                     running = False
                 elif self.hud.wants_to_start_wave(event):
                     if self.wave_manager.start_next_wave():
                         self.stats.start_wave(self.wave_manager.current_wave_number)
 
-                elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
-                    self.handle_enemy_click(pygame.Vector2(event.pos))
+                elif event.type == self._pygame.MOUSEBUTTONDOWN and event.button == 1:
+                    self.handle_enemy_click(self._pygame.Vector2(event.pos))
 
             self.wave_manager.update(delta)
             self.update_enemies(delta)
             self.render()
 
-        pygame.quit()
+        self._pygame.quit()
 
-    def handle_enemy_click(self, position: pygame.Vector2) -> None:
+    def handle_enemy_click(self, position: "pygame_type.Vector2") -> None:
         for enemy in list(self.enemies):
             if enemy.hit_test(position):
                 self.enemies.remove(enemy)
@@ -109,7 +117,7 @@ class Game:
             enemy.draw(self.screen)
 
         self.hud.draw(self.screen)
-        pygame.display.flip()
+        self._pygame.display.flip()
 
 
 def run_game() -> None:
