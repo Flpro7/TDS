@@ -1,0 +1,7 @@
+wave,enemy_type,count,base_health,base_speed,special
+1,explorer,8,95,0.95,
+2,explorer,10,110,1.0,
+3,brute,12,140,1.0,shield
+4,brute,14,160,1.05,shield
+5,shaman,16,180,1.1,regeneration
+6,shaman,18,210,1.15,regeneration
