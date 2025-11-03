@@ -116,6 +116,10 @@ class BaseTower:
         if self.target is None or not self.target.is_alive() or self.distance_to(self.target) > self.range:
             self.target = self.select_target(enemies)
 
+        if self.target is None and self.cooldown < 0:
+            # Prevent cooldown debt from building up while the tower is idle.
+            self.cooldown = 0.0
+
         if self.target and self.fire_rate > 0:
             while self.cooldown <= 0:
                 self.shoot(self.target)
