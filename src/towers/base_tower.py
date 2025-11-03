@@ -82,7 +82,6 @@ class BaseTower:
             damage=self.damage,
         )
         self.projectiles.append(projectile)
-        self.cooldown = 1.0 / self.fire_rate if self.fire_rate > 0 else 0.0
 
     def update_projectiles(self, dt: float) -> None:
         """Advance active projectiles and remove the ones that have finished."""
@@ -105,16 +104,22 @@ class BaseTower:
           has expired.
         """
 
-        if self.cooldown > 0:
-            self.cooldown = max(0.0, self.cooldown - dt)
+        if self.fire_rate > 0:
+            # Allow the cooldown timer to go negative so that we can account
+            # for multiple fire intervals within a single update step.
+            self.cooldown -= dt
+        else:
+            self.cooldown = 0.0
 
         self.update_projectiles(dt)
 
         if self.target is None or not self.target.is_alive() or self.distance_to(self.target) > self.range:
             self.target = self.select_target(enemies)
 
-        if self.target and self.cooldown <= 0:
-            self.shoot(self.target)
+        if self.target and self.fire_rate > 0:
+            while self.cooldown <= 0:
+                self.shoot(self.target)
+                self.cooldown += 1.0 / self.fire_rate
 
     # ------------------------------------------------------------------
     # Upgrade logic
