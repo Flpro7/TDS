@@ -113,9 +113,15 @@ class PlayScene(BaseScene):
 class Game:
     """Main game controller responsible for running the loop and scenes."""
 
-    def __init__(self, width: int = 800, height: int = 600, fps: int = 60) -> None:
+    def __init__(
+        self,
+        width: int = 800,
+        height: int = 600,
+        fps: int = 60,
+        title: str = "Top-Down Shooter",
+    ) -> None:
         pygame.init()
-        pygame.display.set_caption("Top-Down Shooter")
+        pygame.display.set_caption(title)
         self.screen = pygame.display.set_mode((width, height))
         self.clock = pygame.time.Clock()
         self.fps = fps
@@ -123,12 +129,21 @@ class Game:
         self.height = height
         self.running = False
 
-        self.scenes: Dict[str, SceneConfig] = {
-            "menu": SceneConfig(name="menu", factory=MenuScene),
-            "play": SceneConfig(name="play", factory=PlayScene),
-        }
+        self.scenes: Dict[str, SceneConfig] = {}
         self.current_scene: Optional[BaseScene] = None
+
+        # Register default scenes and make the menu the starting point.
+        self.register_scene("menu", MenuScene)
+        self.register_scene("play", PlayScene)
         self.change_scene("menu")
+
+    def register_scene(self, name: str, factory: type[BaseScene]) -> None:
+        """Register a new scene that can be activated later."""
+
+        normalized = name.strip()
+        if not normalized:
+            raise ValueError("Scene name cannot be empty")
+        self.scenes[normalized] = SceneConfig(name=normalized, factory=factory)
 
     def change_scene(self, name: str) -> None:
         """Switch the currently active scene."""
