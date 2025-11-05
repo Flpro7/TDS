@@ -6,8 +6,8 @@ from typing import Optional
 
 import pygame
 
-from economy.player_stats import PlayerStats
-from waves.wave_manager import WaveManager
+from src.economy.player_stats import PlayerStats
+from src.waves.wave_manager import WaveManager
 
 BUTTON_COLOR = (40, 120, 200)
 BUTTON_COLOR_HOVER = (60, 150, 230)
